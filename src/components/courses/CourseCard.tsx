@@ -20,20 +20,27 @@ const cardVariants = {
   },
 };
 
-function formatLastAccessed(dateStr: string | null): string {
-  if (!dateStr) return 'Not started';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
+function formatLastAccessed(lastAccessed: string | null, createdAt: string): string {
+  // Treat "NEVER ACCESSED" or empty as no access
+  const cleaned = lastAccessed?.trim() ?? '';
+  const isNever = cleaned.length === 0 || cleaned.toUpperCase() === 'NEVER ACCESSED';
+
+  if (!isNever && cleaned.length > 0) {
+    // Normalize ALL CAPS → Sentence case (e.g. "ACCESSED 2H AGO" → "Accessed 2h ago")
+    return cleaned
+      .toLowerCase()
+      .replace(/^\w/, (c) => c.toUpperCase());
+  }
+
+  // Fallback: display created_at date
+  const date = new Date(createdAt);
+  if (isNaN(date.getTime())) return 'Recently Added';
+
+  return `Added ${date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  })}`;
 }
 
 function getActionLabel(progress: number): string {
@@ -95,7 +102,7 @@ export default function CourseCard({ course, index }: CourseCardProps) {
       {/* Footer: last accessed + action button */}
       <div className="relative z-10 mt-3 flex items-center justify-between">
         <time className="text-xs text-gray-600">
-          {formatLastAccessed(course.last_accessed)}
+          {formatLastAccessed(course.last_accessed, course.created_at)}
         </time>
         <button
           className="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors"

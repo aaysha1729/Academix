@@ -6,6 +6,7 @@ import CourseGrid from '@/components/courses/CourseGrid';
 import CourseCard from '@/components/courses/CourseCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
 import { BookOpen, ChevronDown, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 async function getCourses(): Promise<Course[]> {
   try {
@@ -85,13 +86,14 @@ export default function CoursesPage() {
             All Courses
             <ChevronDown size={14} className="text-gray-500" />
           </button>
-          <button
+          <Link
+            href="/courses"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600
               text-sm font-medium text-white transition-colors"
           >
             <Plus size={14} />
             Browse Library
-          </button>
+          </Link>
         </div>
       </section>
 

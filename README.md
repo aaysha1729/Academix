@@ -23,7 +23,7 @@ The app follows a deliberate Server/Client boundary strategy:
 - `app/layout.tsx` — Root layout with font loading and semantic structure
 - `app/dashboard/page.tsx` — Fetches courses from Supabase, passes to client
 - `app/courses/page.tsx` — Fetches all courses, renders grid
-- `app/settings/page.tsx` — Static settings layout
+- `app/settings/page.tsx` — Client component with staggered motion container
 
 **Client Components (interactivity + animations):**
 - `components/layout/Sidebar.tsx` — Active nav highlight with `layoutId`
@@ -97,8 +97,8 @@ All animations use **only `transform` and `opacity`** — GPU-accelerated proper
 
 1. **Clone the repository:**
    ```bash
-   git clone <repo-url>
-   cd academix
+   git clone https://github.com/aaysha1729/Academix.git
+   cd Academix
    ```
 
 2. **Install dependencies:**
@@ -113,7 +113,37 @@ All animations use **only `transform` and `opacity`** — GPU-accelerated proper
    Edit `.env.local` with your Supabase credentials.
 
 4. **Set up the database:**
-   Run the SQL in the Supabase SQL Editor (see `.env.example` for required variables).
+   Run the following SQL in the Supabase SQL Editor:
+
+   ```sql
+   -- Create courses table
+   CREATE TABLE courses (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     title TEXT NOT NULL,
+     description TEXT,
+     progress INTEGER NOT NULL DEFAULT 0,
+     icon_name TEXT NOT NULL,
+     level TEXT DEFAULT 'IN PROGRESS',
+     last_accessed TEXT,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+   );
+
+   -- Enable Row Level Security with public read access
+   ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY "Allow public read" ON courses FOR SELECT USING (true);
+
+   -- Grant read permission to the anon role
+   GRANT SELECT ON public.courses TO anon;
+
+   -- Seed courses
+   INSERT INTO courses (title, description, progress, icon_name, level, last_accessed, created_at) VALUES
+     ('Advanced React Patterns', 'Master compound components, HOCs, and render props for scalable...', 75, 'Braces', 'ADVANCED', 'Accessed 2h ago', NOW() - INTERVAL '2 days'),
+     ('System Design Fundamentals', 'Learn to architect large-scale distributed systems, load balancing,...', 42, 'Monitor', 'INTERMEDIATE', 'Accessed yesterday', NOW() - INTERVAL '5 days'),
+     ('Machine Learning Basics', 'Introduction to supervised learning, neural networks, and data...', 0, 'Brain', 'NEW', NULL, NOW() - INTERVAL '1 day'),
+     ('Data Structures & Algorithms', 'Essential problem-solving techniques covering trees, graphs, and dynamic...', 100, 'GitMerge', 'ALMOST DONE', 'Finished 3 days ago', NOW() - INTERVAL '14 days'),
+     ('Database Systems', 'Deep dive into SQL, NoSQL architectures, and database...', 12, 'Database', 'IN PROGRESS', 'Accessed 5h ago', NOW() - INTERVAL '7 days'),
+     ('Operating Systems', 'Understand process scheduling, memory management, and file...', 88, 'Cpu', 'IN PROGRESS', 'Accessed yesterday', NOW() - INTERVAL '10 days');
+   ```
 
 5. **Run the development server:**
    ```bash
